@@ -9,6 +9,8 @@ class MessageSanta:
 /name <ВеселаПіпірка> - щоб змінити своє ім'я, якщо є бажання... Тільки щоби понятно було, ок?
 /register - щоби зареєструватися в грі
 """
+    ASSIGNMENT = "Цього року ви Таємний Санта для {}!"
 
 class MessageSantaSucks(MessageSanta):
-    pass
+
+    ASSIGNMENT = "Цього роки ви Таємний Друг для {}! Микита лох."

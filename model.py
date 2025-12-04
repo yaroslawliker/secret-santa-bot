@@ -8,6 +8,7 @@ class User:
     chat_id: int
     name: str
     language_code = Language.SANTA
+    registered = False
 
 
 class State:
@@ -33,18 +34,26 @@ class SecretSantaModel:
 
     def get_user(self, user_id: int) -> User:
         return self.users[user_id]
+
+    def has_user(self, user_id: int) -> bool:
+        return user_id in self.users
+    
+    
+    def get_registered_user_names(self) -> list:
+        return [user.name for user in self._get_registered_users()]
+    
+    def _get_registered_users(self) -> list:
+        return [user for user in self.users.values() if user.registered]
+    
     
     def change_name(self, user_id: int, new_name: str):
         if user_id in self.users:
             self.users[user_id].name = new_name
-
-    def get_names(list) -> list:
-        return [user.name for user in list.values()]
     
     def assign_santas(self):
         """Returns"""
 
-        users = list(self.users.values())
+        users = self._get_registered_users()
         while True:
             try:
                 santa_mappings = SecretSantaModel._try_map_santas_to_recievers(users)
