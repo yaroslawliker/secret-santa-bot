@@ -30,8 +30,8 @@ def start(message):
 
     chat_id = message.chat.id
     
-    if message.chat.type == "group":
-        bot.send_message(chat_id, "Так-так, бачу це груповий чат. Можете написати /participants щоби отримати список тих хто вже зареєструвався.")
+    if message.chat.type in ("supergroup", "channel", "group"):
+        bot.send_message(chat_id, MessageSanta.GROUP_CHAT_NOTICE)
 
     else:
         newUser = User(chat_id=chat_id, name=message.from_user.first_name)
