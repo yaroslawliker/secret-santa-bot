@@ -1,0 +1,4 @@
+.vscode/
+__pycache__/
+token.txt
+secret_result.txt
