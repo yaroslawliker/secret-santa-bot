@@ -36,6 +36,8 @@ def start(message):
     else:
         newUser = User(chat_id=chat_id, name=message.from_user.first_name)
 
+        newUser.registered = True
+
         model.add_user(newUser)
         bot.send_message(chat_id, MessageSanta.WELCOME.format(newUser.name))
 
@@ -50,7 +52,7 @@ def santa_sucks(message):
 
     user = model.get_user(chat_id)
     user.language_code = Language.SANTA_SUCKS
-    bot.send_message(chat_id, "Ви успішно переключилися на режим Таємного Друга, а не цих ваших стрьомних дідів!")
+    bot.send_message(chat_id, "Ви успішно переключилися на режим Таємного Друга, а не цих ваших таємних язичницьких дідів!")
 
 @bot.message_handler(commands=['name'])
 def change_name(message):
@@ -65,7 +67,7 @@ def change_name(message):
     new_name = " ".join(args[1:])
 
     if not model.has_user(chat_id):
-        bot.send_message(chat_id, "Спочатку виконайте /start")
+        bot.send_message(chat_id, MessageSanta.NOT_REGISTERED)
         return
 
     model.change_name(chat_id, new_name)
@@ -88,18 +90,37 @@ def register(message):
     chat_id = message.chat.id
 
     if not model.has_user(chat_id):
-        bot.send_message(chat_id, "Спочатку виконайте /start")
+        bot.send_message(chat_id, MessageSanta.NOT_REGISTERED)
         return
 
     user = model.get_user(chat_id)
     user.registered = True
     bot.send_message(chat_id, f"{user.name}, ви успішно зареєстровані в грі Таємний Санта!")
 
+@bot.message_handler(commands=['leave'])
+def leave(message):
+    """Handles the /leave command"""
+    chat_id = message.chat.id
+
+    if not model.has_user(chat_id):
+        bot.send_message(chat_id, MessageSanta.NOT_REGISTERED)
+        return
+
+    user = model.get_user(chat_id)
+    user.registered = False
+
+    if user.language_code == Language.SANTA_SUCKS:
+        message = MessageSantaSucks
+    else:
+        message = MessageSanta
+    
+    bot.send_message(chat_id, message.LEFT)
+
 @bot.message_handler(commands=['assign'])
 def assign(message):
     """Handles the /assign command"""
     if message.chat.type == "private":
-        bot.send_message(message.chat.id, "Команду /assign можна виконувати лише в чаті.")
+        bot.send_message(message.chat.id, "Команду /assign можна виконувати лише в груповому чаті.")
         return
 
     bot.send_message(message.chat.id, "Починаю розподіл Сант/друзів...")
