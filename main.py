@@ -102,7 +102,7 @@ def assign(message):
         bot.send_message(message.chat.id, "Команду /assign можна виконувати лише в чаті.")
         return
 
-    bot.sned_message(message.chat.id, "Починаю розподіл Сант/друзів...")
+    bot.send_message(message.chat.id, "Починаю розподіл Сант/друзів...")
 
     santa_mappings = model.assign_santas()
 
@@ -112,8 +112,8 @@ def assign(message):
 
         if giver.language_code == Language.SANTA_SUCKS:
             bot.send_message(giver.chat_id, MessageSantaSucks.ASSIGNMENT.format(giver.name, receiver.name))
-
-        bot.send_message(giver.chat_id, MessageSanta.ASSIGNMENT.format(giver.name, receiver.name))
+        else:
+            bot.send_message(giver.chat_id, MessageSanta.ASSIGNMENT.format(giver.name, receiver.name))
 
     bot.send_message(message.chat.id, "Розподіл Санта завершено і повідомлення надіслано всім учасникам!")
     generate_result_file(santa_mappings)
