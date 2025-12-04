@@ -40,9 +40,9 @@ class SecretSantaModel:
     
     
     def get_registered_user_names(self) -> list:
-        return [user.name for user in self._get_registered_users()]
+        return [user.name for user in self.get_registered_users()]
     
-    def _get_registered_users(self) -> list:
+    def get_registered_users(self) -> list:
         return [user for user in self.users.values() if user.registered]
     
     
@@ -53,7 +53,7 @@ class SecretSantaModel:
     def assign_santas(self):
         """Returns"""
 
-        users = self._get_registered_users()
+        users = self.get_registered_users()
         while True:
             try:
                 santa_mappings = SecretSantaModel._try_map_santas_to_recievers(users)

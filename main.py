@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import random
 
 from messages import Language, MessageSanta, MessageSantaSucks
-from model import SecretSantaModel, User
+from model import SecretSantaModel, User, State
 
 
 def read_token() -> str:
@@ -40,6 +40,7 @@ def start(message):
 
         model.add_user(newUser)
         bot.send_message(chat_id, MessageSanta.WELCOME.format(newUser.name))
+        print(f"[INFO] User {newUser.name} ({newUser.chat_id}) started the bot.")
 
 @bot.message_handler(commands=['santa_sucks'])
 def santa_sucks(message):
@@ -53,6 +54,7 @@ def santa_sucks(message):
     user = model.get_user(chat_id)
     user.language_code = Language.SANTA_SUCKS
     bot.send_message(chat_id, "Ви успішно переключилися на режим Таємного Друга, а не цих ваших таємних язичницьких дідів!")
+    print(f"[INFO] User {user.name} ({user.chat_id}) switched to SANTA_SUCKS mode.")
 
 @bot.message_handler(commands=['name'])
 def change_name(message):
@@ -72,6 +74,7 @@ def change_name(message):
 
     model.change_name(chat_id, new_name)
     bot.send_message(chat_id, f"Ваше ім'я було змінено на {new_name}")
+    print(f"[INFO] User {chat_id} changed name to {new_name}.")
 
 @bot.message_handler(commands=['participants'])
 def participants(message):
@@ -92,10 +95,16 @@ def register(message):
     if not model.has_user(chat_id):
         bot.send_message(chat_id, MessageSanta.NOT_REGISTERED)
         return
+    
 
     user = model.get_user(chat_id)
+    if user.registered:
+        bot.send_message(chat_id, "Ви вже зареєстровані!")
+        return
+
     user.registered = True
     bot.send_message(chat_id, f"{user.name}, ви успішно зареєстровані в грі Таємний Санта!")
+    print(f"[INFO] User {user.name} ({user.chat_id}) registered for the game.")
 
 @bot.message_handler(commands=['leave'])
 def leave(message):
@@ -107,6 +116,11 @@ def leave(message):
         return
 
     user = model.get_user(chat_id)
+
+    if not user.registered:
+        bot.send_message(chat_id, "Ви і так не зареєстровані в грі.")
+        return
+
     user.registered = False
 
     if user.language_code == Language.SANTA_SUCKS:
@@ -115,12 +129,21 @@ def leave(message):
         message = MessageSanta
     
     bot.send_message(chat_id, message.LEFT)
+    print(f"[INFO] User {user.name} ({user.chat_id}) left the game.")
 
 @bot.message_handler(commands=['assign'])
 def assign(message):
     """Handles the /assign command"""
     if message.chat.type == "private":
         bot.send_message(message.chat.id, "Команду /assign можна виконувати лише в груповому чаті.")
+        return
+    
+    if len(model.get_registered_users()) < 2:
+        bot.send_message(message.chat.id, "Недостатньо учасників для розподілу Санта. Потрібно мінімум 2 зареєстрованих учасника.")
+        return
+    
+    if model.state == State.FINISHED:
+        bot.send_message(message.chat.id, "Розподіл вже було виконано.")
         return
 
     bot.send_message(message.chat.id, "Починаю розподіл Сант/друзів...")
@@ -139,7 +162,15 @@ def assign(message):
     bot.send_message(message.chat.id, "Розподіл Санта завершено і повідомлення надіслано всім учасникам!")
     generate_result_file(santa_mappings)
 
+@bot.message_handler(commands=['clear'])
+def clear(message):
+    """Handles the /clear command - clears all users and resets the model"""
+    model.state = State.WAITING
 
+    bot.send_message(message.chat.id, "Зроз, знову щось зафакапили. Скидаю розподіл. Коли будете готові - пишіть знову /assign.")
+    print("[INFO] Model has been reset by /clear command.")
+    
+    
 def generate_result_file(santa_mappings: list) -> str:
     """Generates a text file with the Santa assignments and returns the file path"""
 
