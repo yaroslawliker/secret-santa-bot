@@ -83,6 +83,10 @@ class TestSecretSantaModel(unittest.TestCase):
         u4 = User(chat_id=40, name="Nick")
         u5 = User(chat_id=50, name="Yarko")
 
+        # Make them registered
+        for u in [u1, u2, u3, u4, u5]:
+            u.registered = True
+
         model.add_user(u1)
         model.add_user(u2)
         model.add_user(u3)
